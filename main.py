@@ -28,7 +28,8 @@ CHAT_LOG_FILE = "data/chat_log.json"
 def log_interaction(role, message):
     try:
         with open(CHAT_LOG_FILE, 'r') as f:
-            chat_log = json.load(f)
+            content = f.read()
+            chat_log = json.loads(content) if content.strip() else []
     except FileNotFoundError:
         chat_log = []
     chat_log.append({"role": role, "message": message, "timestamp": str(datetime.datetime.now())})
@@ -38,65 +39,53 @@ def log_interaction(role, message):
 # Main routine
 def main():
     user_name = "Keyur"
-    greeting = f"Hi {user_name}, I'm {assistant_name}, your {assistant_tone} personal buddy. I usually {assistant_style}"
+
+    # GPT-based greeting
+    greeting_prompt = f"You are {assistant_name}, a {assistant_tone} voice assistant who talks like a best friend. Greet Keyur in a friendly and emotional way."
+    greeting = ask_assistant(greeting_prompt, assistant_name)
     speak(greeting)
     log_interaction("assistant", greeting)
 
-    speak("Let's make today a little better together.")
-    log_interaction("assistant", "Let's make today a little better together.")
-
+    # Mood check
     mood = track_mood(user_name, assistant_name)
     log_interaction("user", f"Mood: {mood}")
 
-    response = ask_assistant(f"User {user_name} is feeling {mood}. What should I say to make them feel supported?", assistant_name)
-    speak(response)
-    log_interaction("assistant", response)
+    mood_prompt = f"Keyur is feeling {mood}. Respond supportively as {assistant_name}, and casually ask if he wants to add a task today."
+    mood_response = ask_assistant(mood_prompt, assistant_name)
+    speak(mood_response)
+    log_interaction("assistant", mood_response)
 
-    # Say a motivational quote if available
-    if assistant_quotes:
-        quote = random.choice(assistant_quotes)
-        speak(f"Also, here's a little something to lift your spirit: {quote}")
-        log_interaction("assistant", f"Motivational Quote: {quote}")
-
-    speak("Would you like to add a task for today? (yes/no)")
-    choice = input("Add task? ").strip().lower()
+    # User response to task suggestion
+    choice = input("Add task? (yes/no): ").strip().lower()
     log_interaction("user", f"Task Add Choice: {choice}")
 
     if choice == "yes":
-        speak("Tell me the task you want to add.")
+        ask_task_prompt = f"As {assistant_name}, ask Keyur to tell you the task he wants to remember in a fun or friendly way."
+        speak(ask_assistant(ask_task_prompt, assistant_name))
+
         task = input("Your task: ")
         log_interaction("user", f"Task Added: {task}")
         result = add_task(task)
         speak(result)
         log_interaction("assistant", result)
 
-    speak("Here are your tasks for today:")
+    # Task recap
+    task_summary_prompt = f"As {assistant_name}, list Keyur's tasks for today in a cheerful and supportive tone."
     tasks = list_tasks()
     if tasks:
+        speak(ask_assistant(task_summary_prompt, assistant_name))
         for t in tasks:
             speak(f"- {t}")
             log_interaction("assistant", f"Task: {t}")
     else:
-        speak("You have no tasks for today.")
+        no_task_prompt = f"As {assistant_name}, say something fun or casual to let Keyur know he has no tasks today."
+        speak(ask_assistant(no_task_prompt, assistant_name))
         log_interaction("assistant", "You have no tasks for today.")
 
     # Daily summary
-    speak("Here's a quick summary of today, Keyur:")
-    log_interaction("assistant", "Summary Start")
-
-    # Mood summary
-    speak(f"You mentioned feeling {mood} earlier today.")
-    log_interaction("assistant", f"Mood Summary: {mood}")
-
-    # Task summary
-    if tasks:
-        speak("You planned the following tasks:")
-        for t in tasks:
-            speak(f"- {t}")
-    else:
-        speak("No tasks were listed today.")
-    log_interaction("assistant", "Summary End")
-
+    summary_prompt = f"Summarize today's interaction warmly, considering that Keyur felt {mood} and talked to you, {assistant_name}."
+    speak(ask_assistant(summary_prompt, assistant_name))
+    log_interaction("assistant", "Summary delivered.")
 
 if __name__ == "__main__":
     main()
