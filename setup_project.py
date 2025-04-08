@@ -4,6 +4,7 @@ from pathlib import Path
 folders = [
     "./data",
     "./assets",
+    "./models",
     "./prompts"
 ]
 
@@ -15,6 +16,7 @@ files = {
     "./prompts/mood_check_prompt.txt": "Keyur is feeling {mood}. Say something comforting or motivating.\n",
     "./prompts/assistant_profiles.json": '{\n  "Anaya": {"tone": "calm"},\n  "Ishita": {"tone": "motivating"},\n  "Isha": {"tone": "gentle"},\n  "Sakhi": {"tone": "cheerful"}\n}\n',
     "./data/moods.json": "{}\n",
+    "./data/chat_log.json": "{}\n",
     "./data/tasks.json": "{}\n"
 }
 

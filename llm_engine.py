@@ -1,22 +1,25 @@
-import openai
-import os
-from dotenv import load_dotenv
+# myAI/llm_engine.py
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from llama_cpp import Llama
+
+# Load the Phi-2 model
+MODEL_PATH = "models/phi-2.Q2_K.gguf"
+llm = Llama(model_path=MODEL_PATH, n_ctx=1024)
 
 def ask_assistant(prompt, assistant_name="Anaya"):
-    system_msg = f"You are {assistant_name}, a warm and friendly voice assistant who supports Keyur emotionally like a best friend."
-    
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7
-        )
-        return response['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        return f"Sorry, I couldn’t think of a good reply because of a technical issue: {e}"
+    # Construct a simple, raw prompt since Phi-2 is not chat-optimized
+    raw_prompt = (
+        f"Keyur is feeling a little low today."
+        f" {assistant_name}, as his best friend and voice assistant, what would you say to comfort him?\n"
+        f"{assistant_name}:"
+    )
+
+    response = llm(
+        prompt=raw_prompt,
+        temperature=0.7,
+        top_p=0.9,
+        max_tokens=200,
+        stop=["\n"]
+    )
+
+    return response["choices"][0]["text"].strip()

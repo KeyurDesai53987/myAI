@@ -3,6 +3,8 @@
 import random
 import datetime
 import json
+import signal
+import sys
 from llm_engine import ask_assistant
 from voice_output import speak, set_voice_by_name
 from mood_tracker import track_mood
@@ -36,8 +38,15 @@ def log_interaction(role, message):
     with open(CHAT_LOG_FILE, 'w') as f:
         json.dump(chat_log, f, indent=2)
 
+# Graceful interrupt handler
+def handle_interrupt(signal_received, frame):
+    speak("Oh! Looks like you're leaving, Keyur. Take care and talk to you soon 💛")
+    log_interaction("assistant", "Session interrupted by user.")
+    sys.exit(0)
+
 # Main routine
 def main():
+    signal.signal(signal.SIGINT, handle_interrupt)
     user_name = "Keyur"
 
     # GPT-based greeting
@@ -89,3 +98,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Graceful exit
+    speak("Goodbye, Keyur! Remember, I'm always here for you. Take care!")
+    log_interaction("assistant", "Goodbye message delivered.")  
