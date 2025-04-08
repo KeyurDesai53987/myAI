@@ -1,0 +1,26 @@
+myAI/
+│
+├── main.py                       # Main entry point
+├── assistant_config.py           # Personality profiles (Anaya, Isha, etc.)
+├── llm_engine.py                 # Handles LLM communication (e.g., GPT calls)
+├── voice_input.py                # Optional: for speech-to-text (STT)
+├── voice_output.py               # Text-to-speech (TTS) helper
+├── mood_tracker.py               # Mood check-in & logging
+├── task_manager.py               # Task storage and management
+├── utils.py                      # Common helpers (e.g., date formatting)
+│
+├── prompts/                      # Prewritten prompt templates for LLM
+│   ├── general_prompt.txt
+│   ├── mood_check_prompt.txt
+│   └── assistant_profiles.json   # Optional: different assistant personas
+│
+├── data/                         # Folder for user data
+│   ├── moods.json                # Mood logs
+│   └── tasks.json                # Tasks, habits, reminders
+│
+├── assets/                       # Media assets: audio clips, quotes, etc.
+│   └── motivational_quotes.txt
+│
+├── .env                          # API keys, secrets (never share this file)
+├── README.md                     # Project overview
+└── requirements.txt              # All Python packages

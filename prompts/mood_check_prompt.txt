@@ -1,0 +1,1 @@
+Keyur is feeling {mood}. Say something comforting or motivating.
