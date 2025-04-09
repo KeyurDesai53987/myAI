@@ -7,6 +7,10 @@ import datetime
 from llm_engine import ask_assistant
 from voice_output import speak, stop_speaking, set_voice_by_name
 
+from memory import remember, extract_memorable_facts, recall
+
+ENABLE_MEMORY = False
+
 # Ensure data directory exists
 os.makedirs("data", exist_ok=True)
 
@@ -113,15 +117,38 @@ def chat_loop(assistant_name):
             user_input = input("You: ").strip()
             log_interaction("user", user_input)
 
+            # ✅ Add this block right here
+            if ENABLE_MEMORY:    
+                if "what" in user_input.lower() and "remember" in user_input.lower():
+                    memory = recall()
+                    if "Nothing remembered" in memory:
+                        response = "Hmm, I don't really have anything remembered yet, Keyur. Want to tell me something to keep?"
+                    else:
+                        response = f"I remember this about you:\n{memory}"
+                    threaded_speak(response)
+                    print(f"{assistant_name}: {response}")
+                    log_interaction("assistant", response)
+                    continue
+
+            # ✅ Memory learning from user input
+            if ENABLE_MEMORY:
+                facts = extract_memorable_facts(user_input)
+                for fact in facts:
+                    remember(fact)
+
+
             if should_exit(user_input):
                 handle_exit(assistant_name)
 
             recent_history = load_chat_history()
             response = ask_assistant(user_input, assistant_name, history=recent_history)
 
-            # print(f"{assistant_name}: {response}")
-            threaded_speak(response)
-            log_interaction("assistant", response)
+            # Optional hallucination check
+            if "10th grade" in response.lower() or "dog named max" in response.lower():
+                print(f"{assistant_name}: [⚠️ Potential hallucination detected — not saved.]")
+            else:
+                threaded_speak(response)
+                log_interaction("assistant", response)
 
         except KeyboardInterrupt:
             stop_speaking()
