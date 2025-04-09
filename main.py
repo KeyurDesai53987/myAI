@@ -1,32 +1,79 @@
-# myAI/main.py
-
-import random
-import datetime
+import os
 import json
 import signal
 import sys
+import threading
+import datetime
 from llm_engine import ask_assistant
-from voice_output import speak, set_voice_by_name
-from mood_tracker import track_mood
-from task_manager import add_task, list_tasks
+from voice_output import speak, stop_speaking, set_voice_by_name
+
+# Ensure data directory exists
+os.makedirs("data", exist_ok=True)
+
+# File paths
+CHAT_LOG_FILE = "data/chat_log.json"
+LAST_USED_FILE = "data/last_used.json"
+USAGE_FILE = "data/assistant_usage.json"
+PROFILE_FILE = "prompts/assistant_profiles.json"
 
 # Load assistant profiles
-with open("prompts/assistant_profiles.json", "r") as f:
+with open(PROFILE_FILE, "r") as f:
     assistant_profiles = json.load(f)
-
-# Available assistant personalities
 ASSISTANT_NAMES = list(assistant_profiles.keys())
-assistant_name = random.choice(ASSISTANT_NAMES)
-profile = assistant_profiles[assistant_name]
-assistant_tone = profile.get("tone", "friendly")
-assistant_style = profile.get("style", "speaks supportively")
-assistant_quotes = profile.get("motivational_quotes", [])
 
-# Set voice for selected assistant
-set_voice_by_name(assistant_name)
+# Threaded speech
+speech_thread = None
 
-# Log chat interactions
-CHAT_LOG_FILE = "data/chat_log.json"
+def threaded_speak(text):
+    global speech_thread
+    if speech_thread and speech_thread.is_alive():
+        stop_speaking()
+    speech_thread = threading.Thread(target=speak, args=(text,), daemon=True)
+    speech_thread.start()
+
+def choose_assistant():
+    try:
+        with open(LAST_USED_FILE, "r") as f:
+            last_used = json.load(f).get("assistant")
+            if last_used in ASSISTANT_NAMES:
+                use_last = input(f"Would you like to continue with {last_used}? (y/n): ").strip().lower()
+                if use_last == 'y':
+                    return last_used
+    except:
+        pass
+
+    print("Who would you like to talk to today?")
+    for i, name in enumerate(ASSISTANT_NAMES):
+        print(f"{i+1}. {name}")
+    while True:
+        try:
+            choice = int(input("Enter the number: ")) - 1
+            if 0 <= choice < len(ASSISTANT_NAMES):
+                selected = ASSISTANT_NAMES[choice]
+                with open(LAST_USED_FILE, "w") as f:
+                    json.dump({"assistant": selected}, f)
+                return selected
+            else:
+                print("Invalid choice. Try again.")
+        except ValueError:
+            print("Please enter a number.")
+
+def update_usage_stats(assistant_name):
+    try:
+        with open(USAGE_FILE, "r") as f:
+            usage_data = json.load(f)
+    except FileNotFoundError:
+        usage_data = {}
+
+    if assistant_name not in usage_data:
+        usage_data[assistant_name] = {"sessions": 0, "last_used": None}
+
+    usage_data[assistant_name]["sessions"] += 1
+    usage_data[assistant_name]["last_used"] = str(datetime.datetime.now())
+
+    with open(USAGE_FILE, "w") as f:
+        json.dump(usage_data, f, indent=2)
+
 def log_interaction(role, message):
     try:
         with open(CHAT_LOG_FILE, 'r') as f:
@@ -38,66 +85,57 @@ def log_interaction(role, message):
     with open(CHAT_LOG_FILE, 'w') as f:
         json.dump(chat_log, f, indent=2)
 
-# Graceful interrupt handler
-def handle_interrupt(signal_received, frame):
-    speak("Oh! Looks like you're leaving, Keyur. Take care and talk to you soon 💛")
-    log_interaction("assistant", "Session interrupted by user.")
+def load_chat_history():
+    try:
+        with open(CHAT_LOG_FILE, 'r') as f:
+            content = f.read()
+            chat_log = json.loads(content) if content.strip() else []
+        return chat_log[-10:] if len(chat_log) > 10 else chat_log
+    except FileNotFoundError:
+        return []
+
+def should_exit(user_input):
+    exit_phrases = ["bye", "goodbye", "see you", "exit", "stop", "quit"]
+    return any(phrase in user_input.lower() for phrase in exit_phrases)
+
+def handle_exit(assistant_name):
+    farewell = f"It was lovely chatting with you, Keyur! Take care 💛 – {assistant_name}"
+    print(f"{assistant_name}: {farewell}")
+    threaded_speak(farewell)
+    log_interaction("assistant", farewell)
     sys.exit(0)
 
-# Main routine
+def chat_loop(assistant_name):
+    print(f"👋 Hi Keyur! I'm {assistant_name}. Let's chat! (Ctrl+C or say 'bye' to exit)")
+
+    while True:
+        try:
+            user_input = input("You: ").strip()
+            log_interaction("user", user_input)
+
+            if should_exit(user_input):
+                handle_exit(assistant_name)
+
+            recent_history = load_chat_history()
+            response = ask_assistant(user_input, assistant_name, history=recent_history)
+
+            print(f"{assistant_name}: {response}")
+            threaded_speak(response)
+            log_interaction("assistant", response)
+
+        except KeyboardInterrupt:
+            stop_speaking()
+            print("\n👋 See you next time, Keyur!")
+            break
+
 def main():
-    signal.signal(signal.SIGINT, handle_interrupt)
-    user_name = "Keyur"
+    assistant_name = choose_assistant()
+    set_voice_by_name(assistant_name)
+    update_usage_stats(assistant_name)
+    chat_loop(assistant_name)
 
-    # GPT-based greeting
-    greeting_prompt = f"You are {assistant_name}, a {assistant_tone} voice assistant who talks like a best friend. Greet Keyur in a friendly and emotional way."
-    greeting = ask_assistant(greeting_prompt, assistant_name)
-    speak(greeting)
-    log_interaction("assistant", greeting)
-
-    # Mood check
-    mood = track_mood(user_name, assistant_name)
-    log_interaction("user", f"Mood: {mood}")
-
-    mood_prompt = f"Keyur is feeling {mood}. Respond supportively as {assistant_name}, and casually ask if he wants to add a task today."
-    mood_response = ask_assistant(mood_prompt, assistant_name)
-    speak(mood_response)
-    log_interaction("assistant", mood_response)
-
-    # User response to task suggestion
-    choice = input("Add task? (yes/no): ").strip().lower()
-    log_interaction("user", f"Task Add Choice: {choice}")
-
-    if choice == "yes":
-        ask_task_prompt = f"As {assistant_name}, ask Keyur to tell you the task he wants to remember in a fun or friendly way."
-        speak(ask_assistant(ask_task_prompt, assistant_name))
-
-        task = input("Your task: ")
-        log_interaction("user", f"Task Added: {task}")
-        result = add_task(task)
-        speak(result)
-        log_interaction("assistant", result)
-
-    # Task recap
-    task_summary_prompt = f"As {assistant_name}, list Keyur's tasks for today in a cheerful and supportive tone."
-    tasks = list_tasks()
-    if tasks:
-        speak(ask_assistant(task_summary_prompt, assistant_name))
-        for t in tasks:
-            speak(f"- {t}")
-            log_interaction("assistant", f"Task: {t}")
-    else:
-        no_task_prompt = f"As {assistant_name}, say something fun or casual to let Keyur know he has no tasks today."
-        speak(ask_assistant(no_task_prompt, assistant_name))
-        log_interaction("assistant", "You have no tasks for today.")
-
-    # Daily summary
-    summary_prompt = f"Summarize today's interaction warmly, considering that Keyur felt {mood} and talked to you, {assistant_name}."
-    speak(ask_assistant(summary_prompt, assistant_name))
-    log_interaction("assistant", "Summary delivered.")
+# Graceful Ctrl+C
+signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print("\n👋 Exiting. See you later, Keyur!"), sys.exit(0)))
 
 if __name__ == "__main__":
     main()
-    # Graceful exit
-    speak("Goodbye, Keyur! Remember, I'm always here for you. Take care!")
-    log_interaction("assistant", "Goodbye message delivered.")  
