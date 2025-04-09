@@ -119,7 +119,7 @@ def chat_loop(assistant_name):
             recent_history = load_chat_history()
             response = ask_assistant(user_input, assistant_name, history=recent_history)
 
-            print(f"{assistant_name}: {response}")
+            # print(f"{assistant_name}: {response}")
             threaded_speak(response)
             log_interaction("assistant", response)
 
