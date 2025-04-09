@@ -39,8 +39,8 @@ def choose_assistant():
                 use_last = input(f"Would you like to continue with {last_used}? (y/n): ").strip().lower()
                 if use_last == 'y':
                     return last_used
-    except:
-        pass
+    except Exception as e:
+        print(f"No previous assistant found. Error: {e}")
 
     print("Who would you like to talk to today?")
     for i, name in enumerate(ASSISTANT_NAMES):
