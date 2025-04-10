@@ -43,7 +43,8 @@ def ask_assistant(user_input, assistant_name="Anaya", history=None):
     for chunk in llm(
         prompt=full_prompt,
         max_tokens=300,
-        temperature=0.75,
+        temperature=0.6,
+        repeat_penalty=1.2,
         top_p=0.9,
         stop=["\n", "</s>"],
         stream=True
