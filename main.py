@@ -6,28 +6,46 @@ import threading
 import datetime
 from llm_engine import ask_assistant
 from voice_output import speak, stop_speaking, set_voice_by_name
-
-from memory import remember, extract_memorable_facts, recall
-
-ENABLE_MEMORY = False
-
-# Ensure data directory exists
-os.makedirs("data", exist_ok=True)
+from memory import remember, recall, extract_memorable_facts
 
 # File paths
-CHAT_LOG_FILE = "data/chat_log.json"
-LAST_USED_FILE = "data/last_used.json"
-USAGE_FILE = "data/assistant_usage.json"
-PROFILE_FILE = "prompts/assistant_profiles.json"
+USER_PROFILES_FILE = "prompts/user_profiles.json"
+ASSISTANT_PROFILES_FILE = "prompts/assistant_profiles.json"
 
-# Load assistant profiles
-with open(PROFILE_FILE, "r") as f:
+# Load profiles
+with open(USER_PROFILES_FILE, "r") as f:
+    user_profiles = json.load(f)
+
+with open(ASSISTANT_PROFILES_FILE, "r") as f:
     assistant_profiles = json.load(f)
-ASSISTANT_NAMES = list(assistant_profiles.keys())
+
+# Select active user
+print("👤 Who's chatting today?")
+for i, user in enumerate(user_profiles.keys()):
+    print(f"{i+1}. {user_profiles[user]['name']}")
+
+while True:
+    try:
+        choice = int(input("Enter number: ")) - 1
+        user_key = list(user_profiles.keys())[choice]
+        break
+    except (ValueError, IndexError):
+        print("Invalid choice. Try again.")
+
+active_user = user_profiles[user_key]
+user_name = active_user["name"]
+preferred_voice = active_user["voice"]
+set_voice_by_name(preferred_voice)
+
+# Assistant to use
+assistant_name = preferred_voice
+assistant_profile = assistant_profiles.get(assistant_name, {})
+
+# Graceful Ctrl+C
+signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print(f"\n👋 See you later, {user_name}!"), sys.exit(0)))
 
 # Threaded speech
 speech_thread = None
-
 def threaded_speak(text):
     global speech_thread
     if speech_thread and speech_thread.is_alive():
@@ -35,134 +53,85 @@ def threaded_speak(text):
     speech_thread = threading.Thread(target=speak, args=(text,), daemon=True)
     speech_thread.start()
 
-def choose_assistant():
+# Logging
+def log_interaction(role, message, user_name, raw=None):
+    log_file = f"data/chat_log_{user_name.lower()}.json"
     try:
-        with open(LAST_USED_FILE, "r") as f:
-            last_used = json.load(f).get("assistant")
-            if last_used in ASSISTANT_NAMES:
-                use_last = input(f"Would you like to continue with {last_used}? (y/n): ").strip().lower()
-                if use_last == 'y':
-                    return last_used
-    except Exception as e:
-        print(f"No previous assistant found. Error: {e}")
-
-    print("Who would you like to talk to today?")
-    for i, name in enumerate(ASSISTANT_NAMES):
-        print(f"{i+1}. {name}")
-    while True:
-        try:
-            choice = int(input("Enter the number: ")) - 1
-            if 0 <= choice < len(ASSISTANT_NAMES):
-                selected = ASSISTANT_NAMES[choice]
-                with open(LAST_USED_FILE, "w") as f:
-                    json.dump({"assistant": selected}, f)
-                return selected
-            else:
-                print("Invalid choice. Try again.")
-        except ValueError:
-            print("Please enter a number.")
-
-def update_usage_stats(assistant_name):
-    try:
-        with open(USAGE_FILE, "r") as f:
-            usage_data = json.load(f)
-    except FileNotFoundError:
-        usage_data = {}
-
-    if assistant_name not in usage_data:
-        usage_data[assistant_name] = {"sessions": 0, "last_used": None}
-
-    usage_data[assistant_name]["sessions"] += 1
-    usage_data[assistant_name]["last_used"] = str(datetime.datetime.now())
-
-    with open(USAGE_FILE, "w") as f:
-        json.dump(usage_data, f, indent=2)
-
-def log_interaction(role, message):
-    try:
-        with open(CHAT_LOG_FILE, 'r') as f:
-            content = f.read()
-            chat_log = json.loads(content) if content.strip() else []
+        with open(log_file, 'r') as f:
+            chat_log = json.loads(f.read().strip() or "[]")
     except FileNotFoundError:
         chat_log = []
-    chat_log.append({"role": role, "message": message, "timestamp": str(datetime.datetime.now())})
-    with open(CHAT_LOG_FILE, 'w') as f:
+
+    entry = {
+        "role": role,
+        "message": message,
+        "timestamp": str(datetime.datetime.now())
+    }
+
+    if raw and role == "assistant":
+        entry["raw_response"] = raw
+
+    chat_log.append(entry)
+
+    with open(log_file, 'w') as f:
         json.dump(chat_log, f, indent=2)
 
 def load_chat_history():
+    log_file = f"data/chat_log_{user_name.lower()}.json"
     try:
-        with open(CHAT_LOG_FILE, 'r') as f:
-            content = f.read()
-            chat_log = json.loads(content) if content.strip() else []
-        return chat_log[-10:] if len(chat_log) > 10 else chat_log
+        with open(log_file, 'r') as f:
+            chat_log = json.loads(f.read().strip() or "[]")
+            return chat_log[-10:] if len(chat_log) > 10 else chat_log
     except FileNotFoundError:
         return []
 
 def should_exit(user_input):
-    exit_phrases = ["bye", "goodbye", "see you", "exit", "stop", "quit"]
-    return any(phrase in user_input.lower() for phrase in exit_phrases)
+    return any(phrase in user_input.lower() for phrase in ["bye", "goodbye", "exit", "see you", "quit", "stop"])
 
-def handle_exit(assistant_name):
-    farewell = f"It was lovely chatting with you, Keyur! Take care 💛 – {assistant_name}"
+def handle_exit():
+    farewell = f"It was lovely chatting with you, {user_name}! Take care 💛 {assistant_name}"
     print(f"{assistant_name}: {farewell}")
     threaded_speak(farewell)
-    log_interaction("assistant", farewell)
+    log_interaction("assistant", farewell, user_name)
     sys.exit(0)
 
-def chat_loop(assistant_name):
-    print(f"👋 Hi Keyur! I'm {assistant_name}. Let's chat! (Ctrl+C or say 'bye' to exit)")
+def chat_loop():
+    print(f"👋 Hi {user_name}! I'm {assistant_name}. Let's chat! (Ctrl+C or say 'bye' to exit)")
 
     while True:
         try:
             user_input = input("You: ").strip()
-            log_interaction("user", user_input)
+            log_interaction("user", user_input, user_name)
 
-            # ✅ Add this block right here
-            if ENABLE_MEMORY:    
-                if "what" in user_input.lower() and "remember" in user_input.lower():
-                    memory = recall()
-                    if "Nothing remembered" in memory:
-                        response = "Hmm, I don't really have anything remembered yet, Keyur. Want to tell me something to keep?"
-                    else:
-                        response = f"I remember this about you:\n{memory}"
-                    threaded_speak(response)
-                    print(f"{assistant_name}: {response}")
-                    log_interaction("assistant", response)
-                    continue
+            if "what" in user_input.lower() and "remember" in user_input.lower():
+                memory = recall(user_name)
+                if "Nothing remembered" in memory:
+                    response = f"Hmm, I don't really have anything remembered yet, {user_name}. Want to tell me something to keep?"
+                else:
+                    response = f"I remember this about you:\n{memory}"
+                print(f"{assistant_name}: {response}")
+                threaded_speak(response)
+                log_interaction("assistant", response, user_name)
+                continue
 
-            # ✅ Memory learning from user input
-            if ENABLE_MEMORY:
-                facts = extract_memorable_facts(user_input)
-                for fact in facts:
-                    remember(fact)
-
+            facts = extract_memorable_facts(user_input)
+            for fact in facts:
+                remember(fact, user_name)
 
             if should_exit(user_input):
-                handle_exit(assistant_name)
+                handle_exit()
 
-            recent_history = load_chat_history()
-            response = ask_assistant(user_input, assistant_name, history=recent_history)
+            history = load_chat_history()
+            result = ask_assistant(user_input, assistant_name, history=history, user_profile=active_user)
 
-            # Optional hallucination check
-            if "10th grade" in response.lower() or "dog named max" in response.lower():
-                print(f"{assistant_name}: [⚠️ Potential hallucination detected — not saved.]")
-            else:
-                threaded_speak(response)
-                log_interaction("assistant", response)
+            print(f"{assistant_name}: {result['final']}")
+            threaded_speak(result["final"])
+            log_interaction("assistant", result["final"], user_name, raw=result["raw"])
 
         except KeyboardInterrupt:
             stop_speaking()
-            print("\n👋 See you next time, Keyur!")
+            print(f"\n👋 See you later, {user_name}!")
             break
 
-def main():
-    assistant_name = choose_assistant()
-    set_voice_by_name(assistant_name)
-    update_usage_stats(assistant_name)
-    chat_loop(assistant_name)
-
-# Graceful Ctrl+C
-signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print("\n👋 Exiting. See you later, Keyur!"), sys.exit(0)))
-
 if __name__ == "__main__":
-    main()
+    chat_loop()

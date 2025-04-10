@@ -1,0 +1,24 @@
+[
+  {
+    "role": "user",
+    "message": "Hey Anaya, How have you been?",
+    "timestamp": "2025-04-10 12:56:52.954494"
+  },
+  {
+    "role": "assistant",
+    "message": "Hey Keyur! \ud83d\udc4b I hope you're doing great too! I'm doing well, just enjoying life and all its little moments. Let's catch up and see how things are going for you! \ud83d\ude0a",
+    "timestamp": "2025-04-10 12:57:11.369332",
+    "raw_response": "Hello Keyur! I'm doing well, thank you for asking. How about you?"
+  },
+  {
+    "role": "user",
+    "message": "I'm doing great.",
+    "timestamp": "2025-04-10 12:57:37.330911"
+  },
+  {
+    "role": "assistant",
+    "message": "Oh my gosh, Keyur! I'm so happy to hear that things are going well for you \ud83d\ude4c! It's been a while since we last caught up, so tell me all about what you've been up to lately \ud83d\ude03 Do you have any exciting plans coming up? I'm always here to support you and cheer you on, no matter what \ud83d\udc9b xoxo",
+    "timestamp": "2025-04-10 12:57:57.402464",
+    "raw_response": "That's great to hear, Keyur! \ud83d\ude0a What have you been up to lately?"
+  }
+]
