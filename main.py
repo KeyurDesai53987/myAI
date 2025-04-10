@@ -8,9 +8,18 @@ from llm_engine import ask_assistant
 from voice_output import speak, stop_speaking, set_voice_by_name
 from memory import remember, recall, extract_memorable_facts
 
+if not os.path.exists('prompts/user_profiles.json') or not os.path.exists('prompts/assistant_profiles.json'):
+    print('🔧 Running first-time setup...')
+    import setup
+    setup.run_setup()
+
+
 # File paths
 USER_PROFILES_FILE = "prompts/user_profiles.json"
 ASSISTANT_PROFILES_FILE = "prompts/assistant_profiles.json"
+
+with open('config.json', 'r') as f:
+    CONFIG = json.load(f)
 
 # Load profiles
 with open(USER_PROFILES_FILE, "r") as f:
@@ -91,7 +100,7 @@ def should_exit(user_input):
 def handle_exit():
     farewell = f"It was lovely chatting with you, {user_name}! Take care 💛 {assistant_name}"
     print(f"{assistant_name}: {farewell}")
-    threaded_speak(farewell)
+    # threaded_speak(farewell)
     log_interaction("assistant", farewell, user_name)
     sys.exit(0)
 
@@ -103,20 +112,23 @@ def chat_loop():
             user_input = input("You: ").strip()
             log_interaction("user", user_input, user_name)
 
-            if "what" in user_input.lower() and "remember" in user_input.lower():
-                memory = recall(user_name)
-                if "Nothing remembered" in memory:
-                    response = f"Hmm, I don't really have anything remembered yet, {user_name}. Want to tell me something to keep?"
-                else:
-                    response = f"I remember this about you:\n{memory}"
-                print(f"{assistant_name}: {response}")
-                threaded_speak(response)
-                log_interaction("assistant", response, user_name)
-                continue
+            if 'what' in user_input.lower() and 'remember' in user_input.lower() and CONFIG.get('use_memory', True):
+                if "what" in user_input.lower() and "remember" in user_input.lower():
+                    memory = recall(user_name)
+                    if "Nothing remembered" in memory:
+                        response = f"Hmm, I don't really have anything remembered yet, {user_name}. Want to tell me something to keep?"
+                    else:
+                        response = f"I remember this about you:\n{memory}"
+                    print(f"{assistant_name}: {response}")
+                    # threaded_speak(response)
+                    log_interaction("assistant", response, user_name)
+                    continue
 
-            facts = extract_memorable_facts(user_input)
-            for fact in facts:
-                remember(fact, user_name)
+            if CONFIG.get('use_memory', True):
+                facts = extract_memorable_facts(user_input)
+                for fact in facts:
+                    remember(fact, user_name)
+
 
             if should_exit(user_input):
                 handle_exit()
@@ -125,7 +137,9 @@ def chat_loop():
             result = ask_assistant(user_input, assistant_name, history=history, user_profile=active_user)
 
             print(f"{assistant_name}: {result['final']}")
-            threaded_speak(result["final"])
+            if CONFIG.get('enable_voice', True):
+                threaded_speak(result["final"])
+
             log_interaction("assistant", result["final"], user_name, raw=result["raw"])
 
         except KeyboardInterrupt:

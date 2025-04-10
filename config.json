@@ -1,0 +1,11 @@
+{
+    "use_response_rewriting": false,
+    "stream_output": true,
+    "max_tokens": 200,
+    "inject_mood": true,
+    "use_memory": true,
+    "enable_voice": true,
+    "debug_mode": false,
+    "llm_verbose": false
+  }
+  
