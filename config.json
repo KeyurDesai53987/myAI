@@ -1,10 +1,12 @@
 {
-  "model_path": "models/mistral-7b-instruct-v0.1.Q2_K.gguf",
+  "model_path": "models/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
   "n_ctx": 512,
   "n_gpu_layers": 40,
   "n_threads": 8,
-  "llm_verbose": false,
+  "llm_verbose": true,
   "use_memory": true,
   "enable_voice": false,
-  "response_rewriting": true
+  "response_rewriting": true,
+  "default_user": "keyur",
+  "default_assistant": "Anaya"
 }

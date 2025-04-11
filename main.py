@@ -1,5 +1,6 @@
 # myAI/main.py
 
+import os
 import json
 import signal
 import sys
@@ -8,12 +9,18 @@ import datetime
 from pathlib import Path
 from llm_engine import ask_assistant
 from voice_output import speak, stop_speaking, set_voice_by_name
-from memory import remember, extract_memorable_facts
-import keyboard 
+from memory import remember, recall, extract_memorable_facts
+from rewrite import rewrite_for_tone
 
 # Load config
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
+
+try:
+    import keyboard
+except ImportError:
+    print("Missing 'keyboard' module. Install with: pip install keyboard")
+    sys.exit(1)
 
 # Paths
 USER_PROFILES_FILE = Path("prompts/user_profiles.json")
@@ -40,6 +47,17 @@ def load_profiles():
 
 def choose_user():
     global active_user, assistant_name, assistant_profile
+    default_user = CONFIG.get("default_user")
+    default_assistant = CONFIG.get("default_assistant")
+
+    if default_user in user_profiles:
+        active_user = user_profiles[default_user]
+        assistant_name = active_user.get("voice", default_assistant)
+        assistant_profile = assistant_profiles.get(assistant_name, {})
+        set_voice_by_name(assistant_name)
+        print(f"✅ Using default user: {active_user['name']} with assistant: {assistant_name}")
+        return
+
     print("👤 Who's chatting today?")
     for i, u in enumerate(user_profiles):
         print(f"{i+1}. {user_profiles[u]['name']}")
@@ -101,7 +119,7 @@ def load_history():
     try:
         with open(log_file, 'r') as f:
             chat = json.loads(f.read().strip() or "[]")
-            return chat[-10:] if len(chat) > 10 else chat
+            return chat[-5:] if len(chat) > 5 else chat
     except:
         return []
 
@@ -156,7 +174,7 @@ def chat():
 def main():
     load_profiles()
     choose_user()
-    signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print(f"\n👋 Bye!"), sys.exit(0)))
+    signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print(f"\n👋I won't talk Bye!"), sys.exit(0)))
     chat()
 
 

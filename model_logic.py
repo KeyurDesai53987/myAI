@@ -3,27 +3,27 @@
 def get_model_format(model_path):
     model_path = model_path.lower()
 
-    if "mistral" in model_path:
+    if "tinyllama" in model_path:
         return {
-            "chat_format": "llama-2",
-            "stop": ["You:", "Assistant:"],
-            "prefix": ""
+            "chat_format": "chatml",
+            "stop": ["</s>", "<|user|>", "<|assistant|>"],
+            "prefix_template": "<|system|>\n{system_prompt}</s>\n<|user|>\n{user_input}</s>\n<|assistant|>"
         }
-    elif "llama" in model_path:
+    elif "mistral" in model_path or "llama" in model_path:
         return {
             "chat_format": "llama-2",
             "stop": ["You:", "Assistant:"],
-            "prefix": ""
+            "prefix_template": "{system_prompt}\n\n{history}You: {user_input}\n{assistant_name}:"
         }
     elif "phi" in model_path:
         return {
             "chat_format": "prompt-style",
             "stop": ["User:", "Assistant:"],
-            "prefix": "User: "
+            "prefix_template": "{system_prompt}\n\nUser: {user_input}\nAssistant:"
         }
     else:
         return {
             "chat_format": "plain",
             "stop": ["\n"],
-            "prefix": ""
+            "prefix_template": "{system_prompt}\n\n{history}{user_input}"
         }

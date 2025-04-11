@@ -5,7 +5,7 @@ from llama_cpp import Llama
 from rewrite import rewrite_for_tone
 from model_logic import get_model_format
 
-# Load config
+# Load config directly
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
 
@@ -22,7 +22,7 @@ with open("prompts/assistant_profiles.json", "r") as f:
 # Model-specific settings
 model_settings = get_model_format(MODEL_PATH)
 STOP_TOKENS = model_settings["stop"]
-PREFIX = model_settings["prefix"]
+FORMAT_TYPE = model_settings.get("chat_format")
 
 # Initialize LLM
 llm = Llama(
@@ -35,20 +35,33 @@ llm = Llama(
 
 def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     profile = assistant_profiles[assistant_name]
-    system_prompt = profile["system_prompt"].replace("{user_name}", user_profile["name"])
+    user_name = user_profile["name"]
+    system_prompt = profile["system_prompt"].replace("{user_name}", user_name)
 
-    history_text = ""
-    if history:
-        for entry in history:
-            speaker = "You" if entry["role"] == "user" else assistant_name
-            history_text += f"{speaker}: {entry['message']}"
+    if FORMAT_TYPE == "chatml":  # TinyLlama
+        messages = []
+        messages.append(f"<|system|>\n{system_prompt}</s>")
+        if history:
+            for entry in history:
+                if entry["role"] == "user":
+                    messages.append(f"<|user|>\n{entry['message']}</s>")
+                else:
+                    messages.append(f"<|assistant|>\n{entry['message']}</s>")
+        messages.append(f"<|user|>\n{user_input}</s>\n<|assistant|>")
+        prompt = "\n".join(messages)
 
-    prompt = f"{system_prompt.strip()} {history_text}{PREFIX}{user_input} {assistant_name}:"
+    else:  # LLaMA / Mistral / Phi
+        history_text = ""
+        if history:
+            for entry in history:
+                speaker = "You" if entry["role"] == "user" else assistant_name
+                history_text += f"{speaker}: {entry['message']}\n"
+        prompt = f"{system_prompt.strip()}\n\n{history_text}You: {user_input}\n{assistant_name}:"
 
     output = ""
     for chunk in llm(
         prompt=prompt,
-        max_tokens=100,
+        max_tokens=200,
         temperature=0.7,
         top_p=0.95,
         stop=STOP_TOKENS,
