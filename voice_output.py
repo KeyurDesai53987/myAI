@@ -2,41 +2,32 @@ import pyttsx3
 import threading
 
 engine = pyttsx3.init()
-voices = engine.getProperty('voices')
+engine.setProperty("rate", 180)
 
-engine.setProperty('rate', 170)
-engine.setProperty('volume', 1.0)
-
-current_assistant = "Assistant"
-speech_active = False
-speech_lock = threading.Lock()
-
-def set_voice_by_name(name):
-    global current_assistant
-    current_assistant = name
-
-    voice_map = {
-        "anaya": "Microsoft Zira Desktop",
-        "ishita": "Microsoft Zira Desktop",
-        "isha": "Microsoft Zira Desktop",
-        "sakhi": "Microsoft Zira Desktop"
-    }
-
-    target = voice_map.get(name.lower())
-    for voice in voices:
-        if target and target.lower() in voice.name.lower():
-            engine.setProperty('voice', voice.id)
-            break
+_speak_lock = threading.Lock()
+_current_thread = None
 
 def speak(text):
-    global speech_active
-    with speech_lock:
-        print(f"{current_assistant}: {text}")
-        speech_active = True
-        engine.say(text)
-        engine.runAndWait()
-        speech_active = False
+    global _current_thread
+    stop_speaking()  # stop previous speech
+    def _speak():
+        with _speak_lock:
+            engine.say(text)
+            engine.runAndWait()
+    _current_thread = threading.Thread(target=_speak, daemon=True)
+    _current_thread.start()
 
 def stop_speaking():
-    if speech_active:
-        engine.stop()
+    engine.stop()
+    if _current_thread and _current_thread.is_alive():
+        try:
+            _current_thread.join(timeout=0.1)
+        except:
+            pass
+
+def set_voice_by_name(name):
+    voices = engine.getProperty("voices")
+    for voice in voices:
+        if name.lower() in voice.name.lower():
+            engine.setProperty("voice", voice.id)
+            break

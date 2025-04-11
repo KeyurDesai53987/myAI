@@ -1,5 +1,13 @@
 #!/bin/bash
 
+LOGDIR="logs"
+mkdir -p "$LOGDIR"
+LOGFILE="$LOGDIR/setup_log.txt"
+echo "📋 Logging to $LOGFILE..."
+
+{
+echo "==== SETUP STARTED ===="
+
 if [[ "$1" == "--reset" ]]; then
   echo "🧹 Resetting profiles..."
   rm -f prompts/user_profiles.json
@@ -29,7 +37,7 @@ if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
 
-echo Installing PyAudio...
+echo "🎙 Installing PyAudio..."
 sudo apt-get install -y portaudio19-dev
 pip install pyaudio
 
@@ -38,3 +46,8 @@ $PYTHON setup.py
 
 echo "🚀 Launching assistant..."
 $PYTHON main.py
+
+echo "==== SETUP COMPLETE ===="
+} &> "$LOGFILE"
+
+echo "✅ Done! Log saved to $LOGFILE"

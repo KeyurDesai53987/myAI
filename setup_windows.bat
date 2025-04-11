@@ -1,6 +1,12 @@
 @echo off
 setlocal
 
+set LOGDIR=logs
+set LOGFILE=%LOGDIR%\setup_log.txt
+if not exist %LOGDIR% mkdir %LOGDIR%
+echo Logging to %LOGFILE%...
+
+echo ==== SETUP STARTED ====
 set RESET=%1
 
 if "%RESET%"=="--reset" (
@@ -41,5 +47,7 @@ python setup.py
 echo Launching assistant...
 python main.py
 
-endlocal
+echo ==== SETUP COMPLETE ====
+
+echo ✅ Done! Log saved to %LOGFILE%
 pause

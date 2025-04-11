@@ -1,11 +1,10 @@
 {
-    "use_response_rewriting": false,
-    "stream_output": true,
-    "max_tokens": 200,
-    "inject_mood": true,
-    "use_memory": true,
-    "enable_voice": true,
-    "debug_mode": false,
-    "llm_verbose": false
-  }
-  
+  "model_path": "models/mistral-7b-instruct-v0.1.Q2_K.gguf",
+  "n_ctx": 512,
+  "n_gpu_layers": 40,
+  "n_threads": 8,
+  "llm_verbose": false,
+  "use_memory": true,
+  "enable_voice": false,
+  "response_rewriting": true
+}

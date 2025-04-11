@@ -5,3 +5,4 @@ llama-cpp-python==0.2.60
 transformers==4.39.3
 torch==2.2.2
 accelerate==0.28.0
+keyboard==0.13.5
