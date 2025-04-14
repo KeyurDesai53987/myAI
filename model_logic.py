@@ -6,8 +6,8 @@ def get_model_format(model_path):
     if "tinyllama" in model_path:
         return {
             "chat_format": "chatml",
-            "stop": ["</s>", "<|user|>", "<|assistant|>"],
-            "prefix_template": "<|system|>\n{system_prompt}</s>\n<|user|>\n{user_input}</s>\n<|assistant|>"
+            "stop": ["<|user|>", "<|system|>", "<|assistant|>", "</s>"],
+            "prefix_template": "<|system|>{system_prompt}</s><|user|>{user_input}</s><|assistant|>"
         }
     elif "mistral" in model_path or "llama" in model_path:
         return {

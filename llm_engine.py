@@ -39,15 +39,14 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     system_prompt = profile["system_prompt"].replace("{user_name}", user_name)
 
     if FORMAT_TYPE == "chatml":  # TinyLlama
-        messages = []
-        messages.append(f"<|system|>\n{system_prompt}</s>")
+        messages = [f"<|system|>{system_prompt}</s>"]
         if history:
             for entry in history:
                 if entry["role"] == "user":
-                    messages.append(f"<|user|>\n{entry['message']}</s>")
+                    messages.append(f"<|user|>{entry['message']}</s>")
                 else:
-                    messages.append(f"<|assistant|>\n{entry['message']}</s>")
-        messages.append(f"<|user|>\n{user_input}</s>\n<|assistant|>")
+                    messages.append(f"<|assistant|>{entry['message']}</s>")
+        messages.append(f"<|user|>{user_input}</s><|assistant|>")
         prompt = "\n".join(messages)
 
     else:  # LLaMA / Mistral / Phi
@@ -61,7 +60,7 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     output = ""
     for chunk in llm(
         prompt=prompt,
-        max_tokens=200,
+        max_tokens=500,
         temperature=0.7,
         top_p=0.95,
         stop=STOP_TOKENS,
