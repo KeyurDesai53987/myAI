@@ -4,27 +4,26 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from transformers import BitsAndBytesConfig
 from rewrite import rewrite_for_tone
 
+
 # Load config
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
+
+# Load assistant profiles
+with open('prompts/assistant_profiles.json', 'r') as f:
+    assistant_profiles = json.load(f)
 
 MODEL_NAME = CONFIG["hf_model"]
 MAX_TOKENS = CONFIG.get("max_tokens", 512)
 USE_TONE = CONFIG.get("enable_tone", True)
 
 # Quantization config
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.float16,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4"
-)
+bnb_config = None
 
 # Load model + tokenizer
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    quantization_config=bnb_config,
     device_map="auto"
 )
 generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
@@ -38,7 +37,6 @@ def format_prompt(system_prompt, history, user_input, assistant_name):
     return prompt
 
 def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
-    from prompts.assistant_profiles import assistant_profiles
     user_name = user_profile["name"]
     profile = assistant_profiles[assistant_name]
     system_prompt = profile["system_prompt"].replace("{user_name}", user_name)

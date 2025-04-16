@@ -10,6 +10,7 @@ from pathlib import Path
 from chat_objects import User, Assistant, ChatManager
 from voice_output import stop_speaking
 from mood import detect_mood  # NEW
+import llm_engine  # Ensure this is imported to initialize the LLM engine
 
 # Load config
 with open("config.json", "r") as f:

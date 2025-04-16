@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 from chat_objects import User, Assistant
 from mood import detect_mood
+import llm_engine  # this ensures __init__.py executes
 from llm_engine import ask_assistant
 
 # === Directories and Files ===

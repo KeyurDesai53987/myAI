@@ -1,15 +1,26 @@
 {
   "model_path": "models/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
-  "telegram_token": "7352867366:AAHeOthIzM5hT2Jl4hvDDtaIfeBdGhjRd_o",
   "n_ctx": 4096,
   "n_gpu_layers": 60,
   "n_threads": 8,
-  "hf_model": "tiiuae/falcon-7b-instruct",
+
+  "llm_backend": "llama-cpp",
+  "llm_backend_other": "llama-cpp or hf",
+  "hf_model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+
   "llm_verbose": true,
   "use_memory": false,
   "enable_voice": false,
+  "enable_tone": true,
   "response_rewriting": false,  
   "enable_mood_tone": false,
+
   "default_user": "keyur",
-  "default_assistant": "Isha"
+  "default_assistant": "Isha",
+
+
+  "telegram_token": "7352867366:AAHeOthIzM5hT2Jl4hvDDtaIfeBdGhjRd_o",
+
+  "weather_api_key": "b5fa1a666aa11efb101d9a0eb67106a8"
+
 }

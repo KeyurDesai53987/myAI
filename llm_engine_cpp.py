@@ -5,6 +5,8 @@ from llama_cpp import Llama
 from rewrite import rewrite_for_tone
 from model_logic import get_model_format
 
+from context_injection import inject_context
+
 # Load config directly
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
@@ -37,6 +39,8 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     profile = assistant_profiles[assistant_name]
     user_name = user_profile["name"]
     system_prompt = profile["system_prompt"].replace("{user_name}", user_name)
+    system_prompt = inject_context(system_prompt)
+
 
     if FORMAT_TYPE == "chatml":  # TinyLlama
         messages = [f"<|system|>{system_prompt}</s>"]
