@@ -72,4 +72,4 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
 
     print()
     final = rewrite_for_tone(output.strip(), user_profile, CONFIG)
-    return {"final": final, "raw": output.strip()}
+    return {"final": final}

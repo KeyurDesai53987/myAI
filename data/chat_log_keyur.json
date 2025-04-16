@@ -1,1 +1,132 @@
-[]
+[
+  {
+    "role": "user",
+    "message": "hello",
+    "timestamp": "2025-04-16 17:48:15.835083"
+  },
+  {
+    "role": "assistant",
+    "message": "keyur? is everything okay?",
+    "timestamp": "2025-04-16 17:48:16.482116"
+  },
+  {
+    "role": "user",
+    "message": "yes, everythings alwright",
+    "timestamp": "2025-04-16 17:48:40.496861"
+  },
+  {
+    "role": "assistant",
+    "message": "cool\nIsha: cool",
+    "timestamp": "2025-04-16 17:48:41.098582"
+  },
+  {
+    "role": "user",
+    "message": "how are you",
+    "timestamp": "2025-04-16 17:48:48.821044"
+  },
+  {
+    "role": "assistant",
+    "message": "i'm fine\nIsha: good to hear\nIsha: what have you been up to",
+    "timestamp": "2025-04-16 17:48:49.764944"
+  },
+  {
+    "role": "user",
+    "message": "nothing .... just planing to watch some movies",
+    "timestamp": "2025-04-16 17:49:11.579785"
+  },
+  {
+    "role": "assistant",
+    "message": "sounds good\nIsha: do you want me to come over?",
+    "timestamp": "2025-04-16 17:49:12.572794"
+  },
+  {
+    "role": "user",
+    "message": "hell yeah, it'll be fun, come tonight",
+    "timestamp": "2025-04-16 17:49:29.386503"
+  },
+  {
+    "role": "assistant",
+    "message": "okay, i will see if i can make it",
+    "timestamp": "2025-04-16 17:49:30.162775"
+  },
+  {
+    "role": "user",
+    "message": "when are you free",
+    "timestamp": "2025-04-16 17:49:41.881045"
+  },
+  {
+    "role": "assistant",
+    "message": "7, 8, or 9",
+    "timestamp": "2025-04-16 17:49:43.061709"
+  },
+  {
+    "role": "user",
+    "message": "it's okay, come at that time, I'm free today whole day",
+    "timestamp": "2025-04-16 17:50:02.357579"
+  },
+  {
+    "role": "assistant",
+    "message": "great!\nIsha: thanks for inviting me",
+    "timestamp": "2025-04-16 17:50:03.570444"
+  },
+  {
+    "role": "user",
+    "message": "no need to thank me",
+    "timestamp": "2025-04-16 17:50:11.816766"
+  },
+  {
+    "role": "assistant",
+    "message": "sounds like a good plan",
+    "timestamp": "2025-04-16 17:50:12.902868"
+  },
+  {
+    "role": "user",
+    "message": "okay than, see you tonight,",
+    "timestamp": "2025-04-16 17:50:24.312120"
+  },
+  {
+    "role": "assistant",
+    "message": "sounds good, take care",
+    "timestamp": "2025-04-16 17:50:25.241283"
+  },
+  {
+    "role": "user",
+    "message": "Jai shree krishna",
+    "timestamp": "2025-04-16 17:50:31.630003"
+  },
+  {
+    "role": "assistant",
+    "message": "Jai shree krishna",
+    "timestamp": "2025-04-16 17:50:32.551943"
+  },
+  {
+    "role": "user",
+    "message": "Hey Isha,",
+    "timestamp": "2025-04-16 17:55:18.079646"
+  },
+  {
+    "role": "assistant",
+    "message": "hey!",
+    "timestamp": "2025-04-16 17:55:18.961585"
+  },
+  {
+    "role": "user",
+    "message": "how are you",
+    "timestamp": "2025-04-16 17:55:31.934781"
+  },
+  {
+    "role": "assistant",
+    "message": "I'm doing well. How about you?",
+    "timestamp": "2025-04-16 17:55:33.028416"
+  },
+  {
+    "role": "user",
+    "message": "me too.",
+    "timestamp": "2025-04-16 17:55:39.701339"
+  },
+  {
+    "role": "assistant",
+    "message": "okay that's good to hear.",
+    "timestamp": "2025-04-16 17:55:40.605174"
+  }
+]

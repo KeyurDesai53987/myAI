@@ -4,9 +4,7 @@ import json
 import datetime
 from pathlib import Path
 from voice_output import set_voice_by_name, speak, stop_speaking
-from memory import remember, recall, extract_memorable_facts
-from llm_engine import ask_assistant
-from mood import detect_mood
+from llm_engine_cpp import ask_assistant
 
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
@@ -19,7 +17,7 @@ class User:
         self.log_file = DATA_DIR / f"chat_log_{self.name.lower()}.json"
         set_voice_by_name(voice)
 
-    def log(self, role, message, raw=None):
+    def log(self, role, message):
         try:
             with open(self.log_file, 'r') as f:
                 chat = json.loads(f.read().strip() or "[]")
@@ -31,8 +29,6 @@ class User:
             "message": message,
             "timestamp": str(datetime.datetime.now())
         }
-        if raw and role == "assistant":
-            entry["raw_response"] = raw
         chat.append(entry)
 
         with open(self.log_file, 'w') as f:
@@ -73,39 +69,14 @@ class ChatManager:
 
 
     def run(self):
-        print(f"👋 Hi {self.user.name}! I'm {self.assistant.name}. Let's chat. (Press Ctrl+C to quit)")
+        print(f"👋 Hi {self.user.name}! I'm {self.assistant.name}, you're best friend in need ;) (Press Ctrl+C to quit)")
         while True:
             try:
                 user_input = input("You: ").strip()
                 self.user.log("user", user_input)
 
-                if user_input.lower().startswith("!remember"):
-                    fact = user_input[9:].strip()
-                    if fact:
-                        remember(fact, self.user.name)
-                        reply = "Got it! I’ll keep that in mind."
-                    else:
-                        reply = "You need to say what to remember."
-                    print(f"{self.assistant.name}: {reply}")
-                    self.user.log("assistant", reply)
-                    continue
-
-                if user_input.lower().startswith("!recall"):
-                    memory = recall(self.user.name)
-                    if "Nothing remembered" in memory:
-                        reply = "I don’t have anything stored yet. Want to tell me something?"
-                    else:
-                        reply = f"I remember this about you:\n{memory}"
-                    print(f"{self.assistant.name}: {reply}")
-                    self.user.log("assistant", reply)
-                    continue
-
-                if self.config.get("use_memory", True):
-                    for fact in extract_memorable_facts(user_input):
-                        remember(fact, self.user.name)
-
                 if any(phrase in user_input.lower() for phrase in ["bye", "goodbye"]):
-                    farewell = f"Bye {self.user.name} 👋"
+                    farewell = f"Jai Shree Krishna {self.user.name} 👋"
                     print(f"{self.assistant.name}: {farewell}")
                     self.user.log("assistant", farewell)
                     break
@@ -131,10 +102,10 @@ class ChatManager:
                 if self.config.get("enable_voice", True):
                     self.assistant.speak(result["final"])
 
-                self.user.log("assistant", result["final"], raw=result["raw"])
+                self.user.log("assistant", result["final"])
 
             except KeyboardInterrupt:
                 stop_speaking()
-                print(f"\n👋 See you later, {self.user.name}!")
+                print(f"\n👋 Radhey Radhey, {self.user.name}!")
                 break
         

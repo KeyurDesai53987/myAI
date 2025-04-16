@@ -49,4 +49,4 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     output = response[0]["generated_text"].split(f"{assistant_name}:")[-1].strip()
 
     final = rewrite_for_tone(output, user_profile, CONFIG) if USE_TONE else output
-    return {"final": final, "raw": output}
+    return {"final": final}

@@ -70,7 +70,7 @@ def main():
     user_profiles, assistant_profiles = load_profiles()
     user, assistant = choose_user_and_assistant(user_profiles, assistant_profiles)
 
-    signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print("\n👋 Bye!"), sys.exit(0)))
+    signal.signal(signal.SIGINT, lambda s, f: (stop_speaking(), print("\n👋 Jai Shree Krishna!"), sys.exit(0)))
     keyboard.add_hotkey("ctrl+c", lambda: sys.exit(0))
 
     chat = ChatManager(user, assistant, CONFIG)
