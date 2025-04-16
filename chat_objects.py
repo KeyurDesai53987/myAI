@@ -104,7 +104,7 @@ class ChatManager:
                     for fact in extract_memorable_facts(user_input):
                         remember(fact, self.user.name)
 
-                if any(phrase in user_input.lower() for phrase in ["bye", "exit", "quit", "goodbye", "see you"]):
+                if any(phrase in user_input.lower() for phrase in ["bye", "goodbye"]):
                     farewell = f"Bye {self.user.name} 👋"
                     print(f"{self.assistant.name}: {farewell}")
                     self.user.log("assistant", farewell)
