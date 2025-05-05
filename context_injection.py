@@ -12,7 +12,7 @@ LOG_FILE = "logs/context_log.txt"
 def log_context(msg: str):
     with open(LOG_FILE, "a") as f:
         f.write(f"[{datetime.datetime.now()}] {msg}\n")
-    print(msg)
+    # print(msg)
 
 def inject_context(system_prompt: str) -> str:
     global _last_weather, _last_weather_time

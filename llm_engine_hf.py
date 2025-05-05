@@ -3,14 +3,14 @@ import json
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from transformers import BitsAndBytesConfig
 from rewrite import rewrite_for_tone
-
+from context_injection import inject_context  # if using dynamic values
 
 # Load config
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
 
 # Load assistant profiles
-with open('prompts/assistant_profiles.json', 'r') as f:
+with open('prompts/assistant_profiles.json', 'r', encoding='utf-8') as f:
     assistant_profiles = json.load(f)
 
 MODEL_NAME = CONFIG["hf_model"]
@@ -40,6 +40,7 @@ def ask_assistant(user_input, assistant_name, history=None, user_profile=None):
     user_name = user_profile["name"]
     profile = assistant_profiles[assistant_name]
     system_prompt = profile["system_prompt"].replace("{user_name}", user_name)
+    system_prompt = inject_context(system_prompt)  # <-- THIS IS NEEDED
 
     prompt = format_prompt(system_prompt, history or [], user_input, assistant_name)
 

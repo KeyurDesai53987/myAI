@@ -18,7 +18,7 @@ N_THREADS = CONFIG.get("n_threads", 8)
 VERBOSE_MODE = CONFIG.get("llm_verbose", False)
 
 # Load assistant profiles
-with open("prompts/assistant_profiles.json", "r") as f:
+with open("prompts/assistant_profiles.json", "r", encoding='utf-8') as f:
     assistant_profiles = json.load(f)
 
 # Model-specific settings

@@ -23,9 +23,9 @@ ASSISTANT_PROFILES_FILE = Path("prompts/assistant_profiles.json")
 mood_timestamp = 0  # NEW
 
 def load_profiles():
-    with open(USER_PROFILES_FILE, "r") as f:
+    with open(USER_PROFILES_FILE, "r", encoding='utf-8') as f:  
         user_profiles = json.load(f)
-    with open(ASSISTANT_PROFILES_FILE, "r") as f:
+    with open(ASSISTANT_PROFILES_FILE, "r", encoding='utf-8') as f:
         assistant_profiles = json.load(f)
     return user_profiles, assistant_profiles
 
